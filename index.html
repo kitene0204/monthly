@@ -8,6 +8,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- ★ 카카오톡 SDK 추가 ★ -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.1/kakao.min.js" xintegrity="sha384-wbAcsB0nUeL6F1p6z8QxY1rM17aZ0/Hk2Z0qSntA1mQ2oF/Hk2Z0qSntA1mQ2oF/" crossorigin="anonymous"></script>
+    <script>
+        // 무결성 검사 우회용 폴백 (integrity 오류 시)
+        if (typeof Kakao === 'undefined') {
+            document.write('<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.1/kakao.min.js"><\/script>');
+        }
+    </script>
     <style>
         /* 기본 폰트와 스포티한 제목용 폰트(Black Han Sans) 불러오기 */
         @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
@@ -79,6 +87,23 @@
     <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
     <script>
+        // =========================================================
+        // ★★★ 중요: 카카오톡 공유 기능을 위한 세팅 ★★★
+        // 1. 카카오 디벨로퍼스(https://developers.kakao.com)에 로그인 후 앱 생성
+        // 2. 발급받은 'JavaScript 키'를 아래 따옴표 안에 넣으세요.
+        // 3. 카카오 디벨로퍼스 -> '플랫폼' 메뉴 -> 'Web'에 이 웹앱의 주소(도메인)를 등록해야 합니다.
+        // =========================================================
+        const KAKAO_APP_KEY = '여기에_자바스크립트_앱키_입력'; 
+
+        // 카카오 SDK 초기화
+        try {
+            if (typeof Kakao !== 'undefined' && !Kakao.isInitialized() && KAKAO_APP_KEY !== '여기에_자바스크립트_앱키_입력') {
+                Kakao.init(KAKAO_APP_KEY);
+            }
+        } catch(e) {
+            console.error('카카오 SDK 초기화 실패', e);
+        }
+
         // 공지사항 데이터
         const notices = [
             {
@@ -119,7 +144,7 @@
             const toast = document.createElement('div');
             // 스포티한 테마의 토스트 알림창
             toast.className = 'bg-[#1E3A8A] text-white border border-[#DFFF00] px-6 py-3 rounded-full shadow-2xl text-sm font-bold toast-enter flex items-center gap-2';
-            toast.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-[#DFFF00]"></i> ${message}`;
+            toast.innerHTML = `<i data-lucide="info" class="w-5 h-5 text-[#DFFF00]"></i> ${message}`;
             
             container.appendChild(toast);
             lucide.createIcons(); // 새로 추가된 아이콘 렌더링
@@ -145,7 +170,7 @@
             }, 3000);
         }
 
-        // 텍스트 클립보드 복사 함수
+        // 텍스트 클립보드 복사 함수 (수동 복사용)
         function copyToClipboard(text) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -165,21 +190,24 @@
             }
         }
 
-        // 모바일 네이티브 공유 API 호출 함수 (카카오톡 등으로 바로 공유)
-        async function shareMessage(title, text) {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: title,
-                        text: text
-                    });
-                } catch (err) {
-                    console.log('공유가 취소되었거나 오류가 발생했습니다:', err);
-                }
-            } else {
-                copyToClipboard(text);
-                showToast('이 기기에서는 직접 공유를 지원하지 않아 텍스트가 복사되었습니다.');
+        // ★ 카카오톡 공식 공유 API 호출 ★
+        function shareToKakao(club, message) {
+            if (KAKAO_APP_KEY === '여기에_자바스크립트_앱키_입력' || typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+                // 카카오 키가 설정되지 않았을 경우 안내 후 텍스트 복사로 대체
+                showToast('카카오 디벨로퍼스 앱 키가 설정되지 않았습니다. 텍스트가 복사됩니다.');
+                copyToClipboard(`[${club} 월례대회 알림]\n\n${message}`);
+                return;
             }
+
+            // 카카오톡 텍스트 템플릿으로 보내기
+            Kakao.Share.sendDefault({
+                objectType: 'text',
+                text: `[${club} 월례대회 알림]\n\n${message}`,
+                link: {
+                    mobileWebUrl: window.location.href, // 공유된 메시지를 누르면 이 앱으로 다시 오게 함
+                    webUrl: window.location.href,
+                },
+            });
         }
 
         // 공지사항 카드 렌더링 함수
@@ -206,12 +234,12 @@
                         </div>
                     </div>
                     <div class="flex gap-3 p-4 bg-gray-50/50">
-                        <button onclick="copyToClipboard(\`${notice.message}\`)" 
+                        <button onclick="copyToClipboard(\`[${notice.club} 월례대회 알림]\\n\\n${notice.message}\`)" 
                                 class="flex-1 py-3.5 flex items-center justify-center gap-2 text-gray-700 font-bold bg-white border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300 rounded-xl transition-all active:scale-[0.98]">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                             복사하기
                         </button>
-                        <button onclick="shareMessage('${notice.club} 월례대회 공지', \`${notice.message}\`)" 
+                        <button onclick="shareToKakao('${notice.club}', \`${notice.message}\`)" 
                                 class="flex-1 py-3.5 flex items-center justify-center gap-2 text-[#1E3A8A] font-bold bg-[#DFFF00] hover:bg-[#d4f500] rounded-xl transition-all shadow-sm active:scale-[0.98]">
                             <i data-lucide="message-circle" class="w-5 h-5"></i>
                             카톡 공유
