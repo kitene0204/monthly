@@ -17,64 +17,53 @@
         }
     </script>
     <style>
-        /* 기본 폰트와 스포티한 제목용 폰트(Black Han Sans) 불러오기 */
-        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        /* 기본 폰트와 3가지 제목용 폰트 불러오기 */
+        /* Black Han Sans: 스포티 / Do Hyeon: 친근함 / Jua: 귀여움, 깔끔함 */
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
         
         body {
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #f0f4f8; /* 밝은 코트 느낌의 배경 */
         }
         
-        /* 스포티한 폰트 클래스 */
-        .font-sporty {
-            font-family: 'Black Han Sans', sans-serif;
-            font-weight: 400;
-        }
+        /* 폰트 선택용 클래스 */
+        .font-sporty { font-family: 'Black Han Sans', sans-serif; font-weight: 400; }
+        .font-dohyeon { font-family: 'Do Hyeon', sans-serif; font-weight: 400; }
+        .font-jua { font-family: 'Jua', sans-serif; font-weight: 400; }
 
         /* Custom Scrollbar for clean look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; 
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
         /* Toast Animation */
-        .toast-enter {
-            transform: translateY(100%);
-            opacity: 0;
-        }
-        .toast-enter-active {
-            transform: translateY(0);
-            opacity: 1;
-            transition: all 0.3s ease-out;
-        }
-        .toast-exit {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .toast-exit-active {
-            transform: translateY(100%);
-            opacity: 0;
-            transition: all 0.3s ease-in;
-        }
+        .toast-enter { transform: translateY(100%); opacity: 0; }
+        .toast-enter-active { transform: translateY(0); opacity: 1; transition: all 0.3s ease-out; }
+        .toast-exit { transform: translateY(0); opacity: 1; }
+        .toast-exit-active { transform: translateY(100%); opacity: 0; transition: all 0.3s ease-in; }
+
+        /* Modal Animation */
+        #settings-modal { transition: opacity 0.3s ease; }
+        #settings-modal > div { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden > div { transform: translateY(100%); }
     </style>
 </head>
-<body class="min-h-screen text-gray-800 pb-20">
+<body class="min-h-screen text-gray-800 pb-20 overflow-x-hidden">
 
-    <!-- Header (테니스 코트 블루 & 테니스볼 옐로우 보더) -->
+    <!-- Header -->
     <header class="bg-[#1E3A8A] border-b-4 border-[#DFFF00] shadow-lg sticky top-0 z-10">
-        <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
-            <h1 class="text-2xl text-white flex items-center gap-2 tracking-wide font-sporty">
+        <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="w-8"></div> <!-- 중앙 정렬을 위한 여백 -->
+            <h1 id="main-header-title" class="text-2xl text-white flex items-center gap-2 tracking-wide font-sporty">
                 <i data-lucide="trophy" class="w-6 h-6 text-[#DFFF00]"></i>
-                월례대회 공지 알리미
+                월례대회 공지
             </h1>
+            <!-- 설정 버튼 추가 -->
+            <button onclick="openSettings()" class="text-white hover:text-[#DFFF00] transition-colors p-1" title="설정">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </button>
         </div>
     </header>
 
@@ -86,12 +75,82 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
+    <!-- ★ 설정 모달 창 ★ -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end sm:justify-center items-center modal-hidden">
+        <div class="bg-white w-full max-w-md h-[85vh] sm:h-[80vh] sm:rounded-2xl rounded-t-2xl shadow-xl flex flex-col overflow-hidden">
+            <!-- 모달 헤더 -->
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="settings-2" class="w-5 h-5 text-gray-600"></i> 앱 설정
+                </h2>
+                <button onclick="closeSettings()" class="text-gray-500 hover:text-gray-800 p-1 bg-gray-200 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- 모달 콘텐츠 -->
+            <div class="p-5 overflow-y-auto flex-1 space-y-8 bg-white" id="settings-content">
+                
+                <!-- 글꼴 설정 구역 -->
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="type" class="w-4 h-4 text-[#1E3A8A]"></i> 제목 글꼴 선택
+                    </h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="font-select" value="font-jua" class="hidden peer">
+                            <div class="text-center border-2 border-gray-200 rounded-xl p-3 font-jua text-gray-600 peer-checked:border-[#1E3A8A] peer-checked:bg-blue-50 peer-checked:text-[#1E3A8A] transition-all text-lg">
+                                주아체
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="font-select" value="font-dohyeon" class="hidden peer">
+                            <div class="text-center border-2 border-gray-200 rounded-xl p-3 font-dohyeon text-gray-600 peer-checked:border-[#1E3A8A] peer-checked:bg-blue-50 peer-checked:text-[#1E3A8A] transition-all text-lg">
+                                도현체
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="font-select" value="font-sporty" class="hidden peer">
+                            <div class="text-center border-2 border-gray-200 rounded-xl p-3 font-sporty text-gray-600 peer-checked:border-[#1E3A8A] peer-checked:bg-blue-50 peer-checked:text-[#1E3A8A] transition-all">
+                                스포티
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- 공지 내용 설정 구역 -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                            <i data-lucide="edit" class="w-4 h-4 text-[#1E3A8A]"></i> 공지 내용 수정
+                        </h3>
+                        <button onclick="addNotice()" class="text-xs font-bold bg-[#1E3A8A] text-[#DFFF00] px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-blue-900 transition-colors shadow-sm">
+                            <i data-lucide="plus" class="w-3 h-3"></i> 항목 추가
+                        </button>
+                    </div>
+                    <div id="edit-forms-container" class="space-y-4">
+                        <!-- 수정 폼들이 JS로 채워집니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모달 하단 버튼 -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50 flex gap-2">
+                <button onclick="resetToDefault()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3.5 rounded-xl hover:bg-gray-300 transition-colors">
+                    초기화
+                </button>
+                <button onclick="saveSettings()" class="flex-[2] bg-[#1E3A8A] text-[#DFFF00] font-bold py-3.5 rounded-xl hover:bg-blue-900 transition-colors shadow-md active:scale-[0.98]">
+                    변경사항 저장
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // =========================================================
         // ★★★ 중요: 카카오톡 공유 기능을 위한 세팅 ★★★
-        // 1. 카카오 디벨로퍼스(https://developers.kakao.com)에 로그인 후 앱 생성
-        // 2. 발급받은 'JavaScript 키'를 아래 따옴표 안에 넣으세요.
-        // 3. 카카오 디벨로퍼스 -> '플랫폼' 메뉴 -> 'Web'에 이 웹앱의 주소(도메인)를 등록해야 합니다.
         // =========================================================
         const KAKAO_APP_KEY = 'a97147281af97e3a97e0378402e1f195'; 
 
@@ -104,87 +163,58 @@
             console.error('카카오 SDK 초기화 실패', e);
         }
 
-        // 공지사항 데이터
-        const notices = [
-            {
-                id: 1,
-                tag: "첫째주 금요일",
-                club: "이순클럽",
-                message: "내일은 이순클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
-            },
-            {
-                id: 2,
-                tag: "첫째주 토요일",
-                club: "그린클럽",
-                message: "내일은 그린클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
-            },
-            {
-                id: 3,
-                tag: "둘째주 토요일",
-                club: "칠성뜰",
-                message: "내일은 칠성뜰 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
-            },
-            {
-                id: 4,
-                tag: "셋째주 토요일",
-                club: "한울림",
-                message: "내일은 한울림 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
-            },
-            {
-                id: 5,
-                tag: "넷째주 토요일",
-                club: "21세기",
-                message: "내일은 21세기 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
-            }
+        // 기본 공지사항 데이터 (초기화용)
+        const defaultNotices = [
+            { id: 1, tag: "첫째주 금요일", club: "이순클럽", message: "내일은 이순클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" },
+            { id: 2, tag: "첫째주 토요일", club: "그린클럽", message: "내일은 그린클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" },
+            { id: 3, tag: "둘째주 토요일", club: "칠성뜰", message: "내일은 칠성뜰 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" },
+            { id: 4, tag: "셋째주 토요일", club: "한울림", message: "내일은 한울림 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" },
+            { id: 5, tag: "넷째주 토요일", club: "21세기", message: "내일은 21세기 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" }
         ];
+
+        // 로컬스토리지에서 데이터 불러오기 (없으면 기본값 사용)
+        let notices = JSON.parse(localStorage.getItem('savedNotices')) || [...defaultNotices];
+        let currentFont = localStorage.getItem('savedFont') || 'font-jua';
+
+        // 설정 모달용 임시 데이터
+        let tempNotices = [];
 
         // Toast 메시지 띄우기 함수
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            // 스포티한 테마의 토스트 알림창
             toast.className = 'bg-[#1E3A8A] text-white border border-[#DFFF00] px-6 py-3 rounded-full shadow-2xl text-sm font-bold toast-enter flex items-center gap-2';
             toast.innerHTML = `<i data-lucide="info" class="w-5 h-5 text-[#DFFF00]"></i> ${message}`;
             
             container.appendChild(toast);
-            lucide.createIcons(); // 새로 추가된 아이콘 렌더링
+            lucide.createIcons();
 
-            // 애니메이션 적용 (Enter)
             requestAnimationFrame(() => {
                 toast.classList.remove('toast-enter');
                 toast.classList.add('toast-enter-active');
             });
 
-            // 3초 후 제거 (Exit)
             setTimeout(() => {
                 toast.classList.remove('toast-enter-active');
                 toast.classList.add('toast-exit');
-                requestAnimationFrame(() => {
-                    toast.classList.add('toast-exit-active');
-                });
-                
-                // 애니메이션 끝난 후 DOM에서 완전히 제거
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
+                requestAnimationFrame(() => toast.classList.add('toast-exit-active'));
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // 텍스트 클립보드 복사 함수 (수동 복사용)
+        // 텍스트 클립보드 복사 함수
         function copyToClipboard(text) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
-            textarea.style.position = 'fixed'; // 화면 스크롤 방지
+            textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
             try {
                 document.execCommand('copy');
                 showToast('공지가 복사되었습니다! 카톡에 붙여넣어주세요.');
             } catch (err) {
-                showToast('복사에 실패했습니다. 수동으로 복사해주세요.');
-                console.error('Copy failed', err);
+                showToast('복사에 실패했습니다.');
             } finally {
                 document.body.removeChild(textarea);
             }
@@ -193,41 +223,179 @@
         // ★ 카카오톡 공식 공유 API 호출 ★
         function shareToKakao(club, message) {
             if (KAKAO_APP_KEY === '여기에_자바스크립트_앱키_입력' || typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
-                // 카카오 키가 설정되지 않았을 경우 안내 후 텍스트 복사로 대체
                 showToast('카카오 디벨로퍼스 앱 키가 설정되지 않았습니다. 텍스트가 복사됩니다.');
                 copyToClipboard(`[${club} 월례대회 알림]\n\n${message}`);
                 return;
             }
-
-            // 카카오톡 텍스트 템플릿으로 보내기
             Kakao.Share.sendDefault({
                 objectType: 'text',
                 text: `[${club} 월례대회 알림]\n\n${message}`,
-                link: {
-                    mobileWebUrl: window.location.href, // 공유된 메시지를 누르면 이 앱으로 다시 오게 함
-                    webUrl: window.location.href,
-                },
+                link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
             });
+        }
+
+        // ==========================================
+        // 설정 모달 기능
+        // ==========================================
+        function renderSettingsForms() {
+            const editContainer = document.getElementById('edit-forms-container');
+            editContainer.innerHTML = '';
+            
+            if (tempNotices.length === 0) {
+                editContainer.innerHTML = '<div class="text-center text-gray-500 py-6 text-sm">등록된 공지 항목이 없습니다.<br>위의 [항목 추가] 버튼을 눌러 추가해주세요.</div>';
+            }
+            
+            tempNotices.forEach((notice, index) => {
+                const formDiv = document.createElement('div');
+                formDiv.className = 'bg-gray-50/80 p-4 rounded-xl border border-gray-200 space-y-3';
+                formDiv.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-2 mb-2">
+                        <h4 class="font-bold text-[13px] text-gray-500 bg-gray-200 px-2 py-1 rounded-md">항목 ${index + 1}</h4>
+                        <button onclick="removeNotice(${index})" class="text-red-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 삭제
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">대회 시기</label>
+                            <input type="text" id="edit-tag-${index}" value="${notice.tag}" placeholder="예: 첫째주 금요일" class="w-full border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] outline-none transition-all bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">클럽명</label>
+                            <input type="text" id="edit-club-${index}" value="${notice.club}" placeholder="클럽 이름" class="w-full border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-[#1E3A8A] outline-none transition-all bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">공지 내용</label>
+                        <textarea id="edit-message-${index}" placeholder="공지 내용을 입력하세요" class="w-full border border-gray-300 p-2 rounded-lg text-sm h-24 focus:ring-2 focus:ring-[#1E3A8A] outline-none transition-all bg-white resize-none">${notice.message}</textarea>
+                    </div>
+                `;
+                editContainer.appendChild(formDiv);
+            });
+            lucide.createIcons();
+        }
+
+        function syncTempNotices() {
+            tempNotices = tempNotices.map((notice, index) => {
+                return {
+                    ...notice,
+                    tag: document.getElementById(`edit-tag-${index}`)?.value || '',
+                    club: document.getElementById(`edit-club-${index}`)?.value || '',
+                    message: document.getElementById(`edit-message-${index}`)?.value || ''
+                };
+            });
+        }
+
+        function addNotice() {
+            syncTempNotices();
+            tempNotices.push({ 
+                id: Date.now(), 
+                tag: "새로운 시기", 
+                club: "새 클럽", 
+                message: "내일은 새 클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^" 
+            });
+            renderSettingsForms();
+            
+            // 항목 추가 후 맨 아래로 스크롤
+            setTimeout(() => {
+                const content = document.getElementById('settings-content');
+                content.scrollTop = content.scrollHeight;
+            }, 50);
+        }
+
+        function removeNotice(index) {
+            if(confirm('이 항목을 정말 삭제하시겠습니까?')) {
+                syncTempNotices();
+                tempNotices.splice(index, 1);
+                renderSettingsForms();
+            }
+        }
+
+        function openSettings() {
+            // 현재 설정된 값들로 폼 채우기
+            document.querySelector(`input[name="font-select"][value="${currentFont}"]`).checked = true;
+            
+            // 현재 저장된 공지사항을 임시 배열로 복사 후 렌더링
+            tempNotices = JSON.parse(JSON.stringify(notices));
+            renderSettingsForms();
+
+            // 모달 열기 애니메이션
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('modal-hidden');
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        function closeSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('modal-hidden');
+            document.body.style.overflow = '';
+        }
+
+        // 모달 밖 클릭시 닫기
+        document.getElementById('settings-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSettings();
+        });
+
+        function saveSettings() {
+            // 글꼴 저장
+            const selectedFont = document.querySelector('input[name="font-select"]:checked').value;
+            currentFont = selectedFont;
+            localStorage.setItem('savedFont', currentFont);
+
+            // 공지사항 저장
+            syncTempNotices();
+            notices = JSON.parse(JSON.stringify(tempNotices));
+            localStorage.setItem('savedNotices', JSON.stringify(notices));
+
+            // UI 업데이트 및 종료
+            applyTitleFont();
+            renderNotices();
+            closeSettings();
+            showToast('설정이 성공적으로 저장되었습니다!');
+        }
+
+        function resetToDefault() {
+            if(confirm('기본 설정으로 되돌리시겠습니까? 수정한 내용과 추가/삭제한 항목이 모두 초기화됩니다.')) {
+                localStorage.removeItem('savedNotices');
+                localStorage.removeItem('savedFont');
+                notices = [...defaultNotices];
+                currentFont = 'font-jua';
+                applyTitleFont();
+                renderNotices();
+                closeSettings();
+                showToast('초기화 되었습니다.');
+            }
+        }
+
+        // ==========================================
+        // UI 렌더링 함수
+        // ==========================================
+        function applyTitleFont() {
+            const headerTitle = document.getElementById('main-header-title');
+            // 기존 폰트 클래스 모두 제거 후 현재 폰트 적용
+            headerTitle.classList.remove('font-sporty', 'font-dohyeon', 'font-jua');
+            headerTitle.classList.add(currentFont);
         }
 
         // 공지사항 카드 렌더링 함수
         function renderNotices() {
             const container = document.getElementById('notice-container');
+            container.innerHTML = ''; // 초기화
             
             notices.forEach(notice => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl shadow-md border-t-4 border-[#DFFF00] overflow-hidden";
                 
-                // 줄바꿈 문자를 <br> 태그로 변환하여 HTML에 표시
                 const formattedMessage = notice.message.replace(/\n/g, '<br>');
 
                 card.innerHTML = `
                     <div class="p-6 border-b border-gray-100">
                         <div class="flex flex-col items-start mb-4 gap-1">
-                            <span class="inline-block px-3 py-1.5 bg-[#1E3A8A] text-[#DFFF00] text-xs tracking-wider rounded-md font-sporty">
+                            <span class="inline-block px-3 py-1.5 bg-[#1E3A8A] text-[#DFFF00] text-xs tracking-wider rounded-md font-bold">
                                 ${notice.tag}
                             </span>
-                            <h2 class="text-3xl text-gray-900 mt-2 font-sporty tracking-wide">${notice.club} 월례대회</h2>
+                            <!-- 제목 글꼴이 여기서도 동적으로 적용됩니다 -->
+                            <h2 class="text-3xl text-gray-900 mt-2 tracking-wide ${currentFont}">${notice.club} 월례대회</h2>
                         </div>
                         <div class="bg-[#f8fafc] p-4 rounded-xl text-gray-800 text-[15px] font-medium leading-relaxed border border-gray-100 shadow-inner">
                             ${formattedMessage}
@@ -236,12 +404,16 @@
                     <div class="flex gap-3 p-4 bg-gray-50/50">
                         <button onclick="copyToClipboard(\`[${notice.club} 월례대회 알림]\\n\\n${notice.message}\`)" 
                                 class="flex-1 py-3.5 flex items-center justify-center gap-2 text-gray-700 font-bold bg-white border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300 rounded-xl transition-all active:scale-[0.98]">
-                            <i data-lucide="copy" class="w-5 h-5"></i>
+                            <i data-lucide="copy" class="w-5 h-5 shrink-0"></i>
                             복사하기
                         </button>
                         <button onclick="shareToKakao('${notice.club}', \`${notice.message}\`)" 
-                                class="flex-1 py-3.5 flex items-center justify-center gap-2 text-[#1E3A8A] font-bold bg-[#DFFF00] hover:bg-[#d4f500] rounded-xl transition-all shadow-sm active:scale-[0.98]">
-                            <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                class="flex-1 py-3.5 flex items-center justify-center gap-2 text-[#3A1D1D] font-bold bg-[#FEE500] hover:bg-[#FADA0A] rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-[28px] h-[28px] shrink-0" viewBox="0 0 100 100">
+                                <ellipse cx="50" cy="45" rx="50" ry="42" fill="#3A1D1D" />
+                                <path fill="#3A1D1D" d="M22 77 l-6 18 c-1 2 2 2 3 1 l20 -14 z" />
+                                <text x="50" y="58" fill="#FEE500" font-family="Impact, 'Arial Black', sans-serif" font-weight="bold" font-size="34" text-anchor="middle" letter-spacing="-1">TALK</text>
+                            </svg>
                             카톡 공유
                         </button>
                     </div>
@@ -249,12 +421,14 @@
                 container.appendChild(card);
             });
 
-            // Lucide 아이콘 렌더링
             lucide.createIcons();
         }
 
         // 페이지 로드 시 렌더링 실행
-        document.addEventListener('DOMContentLoaded', renderNotices);
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTitleFont();
+            renderNotices();
+        });
 
     </script>
 </body>
