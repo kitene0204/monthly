@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월례대회 공지 알리미</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 기본 폰트와 스포티한 제목용 폰트(Black Han Sans) 불러오기 */
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f4f8; /* 밝은 코트 느낌의 배경 */
+        }
+        
+        /* 스포티한 폰트 클래스 */
+        .font-sporty {
+            font-family: 'Black Han Sans', sans-serif;
+            font-weight: 400;
+        }
+
+        /* Custom Scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+        /* Toast Animation */
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+        .toast-exit {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-exit-active {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 pb-20">
+
+    <!-- Header (테니스 코트 블루 & 테니스볼 옐로우 보더) -->
+    <header class="bg-[#1E3A8A] border-b-4 border-[#DFFF00] shadow-lg sticky top-0 z-10">
+        <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
+            <h1 class="text-2xl text-white flex items-center gap-2 tracking-wide font-sporty">
+                <i data-lucide="trophy" class="w-6 h-6 text-[#DFFF00]"></i>
+                월례대회 공지 알리미
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto px-4 py-6 space-y-5" id="notice-container">
+        <!-- Cards will be injected here by JavaScript -->
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
+
+    <script>
+        // 공지사항 데이터
+        const notices = [
+            {
+                id: 1,
+                tag: "첫째주 금요일",
+                club: "이순클럽",
+                message: "내일은 이순클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
+            },
+            {
+                id: 2,
+                tag: "첫째주 토요일",
+                club: "그린클럽",
+                message: "내일은 그린클럽 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
+            },
+            {
+                id: 3,
+                tag: "둘째주 토요일",
+                club: "칠성뜰",
+                message: "내일은 칠성뜰 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
+            },
+            {
+                id: 4,
+                tag: "셋째주 토요일",
+                club: "한울림",
+                message: "내일은 한울림 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
+            },
+            {
+                id: 5,
+                tag: "넷째주 토요일",
+                club: "21세기",
+                message: "내일은 21세기 월례대회 입니다!\n14:00 - 17:50 정도 사용 예정입니다.\n운동 일정에 참고하셔요^^"
+            }
+        ];
+
+        // Toast 메시지 띄우기 함수
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            // 스포티한 테마의 토스트 알림창
+            toast.className = 'bg-[#1E3A8A] text-white border border-[#DFFF00] px-6 py-3 rounded-full shadow-2xl text-sm font-bold toast-enter flex items-center gap-2';
+            toast.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-[#DFFF00]"></i> ${message}`;
+            
+            container.appendChild(toast);
+            lucide.createIcons(); // 새로 추가된 아이콘 렌더링
+
+            // 애니메이션 적용 (Enter)
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
+            });
+
+            // 3초 후 제거 (Exit)
+            setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit');
+                requestAnimationFrame(() => {
+                    toast.classList.add('toast-exit-active');
+                });
+                
+                // 애니메이션 끝난 후 DOM에서 완전히 제거
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // 텍스트 클립보드 복사 함수
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // 화면 스크롤 방지
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('공지가 복사되었습니다! 카톡에 붙여넣어주세요.');
+            } catch (err) {
+                showToast('복사에 실패했습니다. 수동으로 복사해주세요.');
+                console.error('Copy failed', err);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // 모바일 네이티브 공유 API 호출 함수 (카카오톡 등으로 바로 공유)
+        async function shareMessage(title, text) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: text
+                    });
+                } catch (err) {
+                    console.log('공유가 취소되었거나 오류가 발생했습니다:', err);
+                }
+            } else {
+                copyToClipboard(text);
+                showToast('이 기기에서는 직접 공유를 지원하지 않아 텍스트가 복사되었습니다.');
+            }
+        }
+
+        // 공지사항 카드 렌더링 함수
+        function renderNotices() {
+            const container = document.getElementById('notice-container');
+            
+            notices.forEach(notice => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl shadow-md border-t-4 border-[#DFFF00] overflow-hidden";
+                
+                // 줄바꿈 문자를 <br> 태그로 변환하여 HTML에 표시
+                const formattedMessage = notice.message.replace(/\n/g, '<br>');
+
+                card.innerHTML = `
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex flex-col items-start mb-4 gap-1">
+                            <span class="inline-block px-3 py-1.5 bg-[#1E3A8A] text-[#DFFF00] text-xs tracking-wider rounded-md font-sporty">
+                                ${notice.tag}
+                            </span>
+                            <h2 class="text-3xl text-gray-900 mt-2 font-sporty tracking-wide">${notice.club} 월례대회</h2>
+                        </div>
+                        <div class="bg-[#f8fafc] p-4 rounded-xl text-gray-800 text-[15px] font-medium leading-relaxed border border-gray-100 shadow-inner">
+                            ${formattedMessage}
+                        </div>
+                    </div>
+                    <div class="flex gap-3 p-4 bg-gray-50/50">
+                        <button onclick="copyToClipboard(\`${notice.message}\`)" 
+                                class="flex-1 py-3.5 flex items-center justify-center gap-2 text-gray-700 font-bold bg-white border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300 rounded-xl transition-all active:scale-[0.98]">
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                            복사하기
+                        </button>
+                        <button onclick="shareMessage('${notice.club} 월례대회 공지', \`${notice.message}\`)" 
+                                class="flex-1 py-3.5 flex items-center justify-center gap-2 text-[#1E3A8A] font-bold bg-[#DFFF00] hover:bg-[#d4f500] rounded-xl transition-all shadow-sm active:scale-[0.98]">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i>
+                            카톡 공유
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Lucide 아이콘 렌더링
+            lucide.createIcons();
+        }
+
+        // 페이지 로드 시 렌더링 실행
+        document.addEventListener('DOMContentLoaded', renderNotices);
+
+    </script>
+</body>
+</html>
